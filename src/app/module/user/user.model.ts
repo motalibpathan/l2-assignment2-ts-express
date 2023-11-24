@@ -1,14 +1,22 @@
 import mongoose, { Schema } from "mongoose";
-import { TAddress, TFullName, TOrder, TUser } from "./user.interface";
+import {
+  IUserModel,
+  TAddress,
+  TFullName,
+  TOrder,
+  TUser,
+} from "./user.interface";
 
 const fullNameSchema = new Schema<TFullName>({
   firstName: {
     type: String,
     required: [true, "First name is required"],
+    maxlength: [20, "First name cannot be more than 20 characters"],
   },
   lastName: {
     type: String,
     required: [true, "Last name is required"],
+    maxlength: [20, "Last name cannot be more than 20 characters"],
   },
 });
 
@@ -42,7 +50,7 @@ const addressSchema = new Schema<TAddress>({
   },
 });
 
-const userSchema = new Schema<TUser>({
+const userSchema = new Schema<TUser, IUserModel>({
   userId: {
     type: Number,
     required: [true, "User ID is required"],
@@ -76,10 +84,15 @@ const userSchema = new Schema<TUser>({
   hobbies: {
     type: [String],
   },
-  address: addressSchema,
+  address: { type: addressSchema, required: [true, "Address is required"] },
   orders: [orderSchema],
 });
 
-const User = mongoose.model<TUser>("User", userSchema);
+userSchema.statics.isUserExist = async function (userId: string) {
+  const user = await User.findOne({ userId });
+  return user;
+};
+
+const User = mongoose.model<TUser, IUserModel>("User", userSchema);
 
 export default User;
