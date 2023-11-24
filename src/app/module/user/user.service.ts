@@ -22,8 +22,22 @@ const getUserByIdFromDB = async (userId: number) => {
   return exists;
 };
 
+const updateUserIntoDB = async (userId: number, user: TUser) => {
+  const exists = await User.isUserExists(userId);
+
+  if (!exists) {
+    return null;
+  }
+
+  const result = await User.findOneAndUpdate({ userId: userId }, user, {
+    new: true,
+  });
+  return result;
+};
+
 export const userServices = {
   createUserIntoDB,
   getAllUsersFromDB,
   getUserByIdFromDB,
+  updateUserIntoDB,
 };
