@@ -1,4 +1,4 @@
-import { TUser } from "./user.interface";
+import { TOrder, TUser } from "./user.interface";
 import User from "./user.model";
 
 const createUserIntoDB = async (user: TUser) => {
@@ -50,7 +50,7 @@ const updateUserIntoDB = async (userId: number, user: TUser) => {
   // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const { orders, password, ...updatedUser } = result.toObject();
 
-  return result;
+  return updatedUser;
 };
 
 const deleteUserFromDB = async (userId: number) => {
@@ -72,10 +72,32 @@ const deleteUserFromDB = async (userId: number) => {
   return result;
 };
 
+const addNewOrderToDB = async (userId: number, order: TOrder) => {
+  const exists = await User.isUserExists(userId);
+
+  if (!exists) {
+    return null;
+  }
+
+  const result = await User.findOneAndUpdate(
+    { userId: userId },
+    {
+      $set: { orders: { $push: order } },
+    }
+  );
+
+  if (!result) {
+    return null;
+  }
+
+  return order;
+};
+
 export const userServices = {
   createUserIntoDB,
   getAllUsersFromDB,
   getUserByIdFromDB,
   updateUserIntoDB,
   deleteUserFromDB,
+  addNewOrderToDB,
 };

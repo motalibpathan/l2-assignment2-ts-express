@@ -13,4 +13,8 @@ router.put("/:userId", userControllers.updateUser);
 
 router.delete("/:userId", userControllers.deleteUser);
 
+router.get("/:userId/orders", userControllers.getUserOrders);
+
+router.put("/:userId/orders", userControllers.addNewOrder);
+
 export const userRoutes = router;

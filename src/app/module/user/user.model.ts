@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, UpdateQuery } from "mongoose";
 import config from "../../config";
 import {
   IUserModel,
@@ -106,6 +106,17 @@ userSchema.pre("save", async function (next) {
     user.password,
     Number(config.bcrypt_salt_rounds)
   );
+  next();
+});
+
+userSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate() as UpdateQuery<TUser>;
+  if (update.password) {
+    update.password = await bcrypt.hash(
+      update.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
   next();
 });
 
