@@ -1,4 +1,6 @@
+import bcrypt from "bcrypt";
 import mongoose, { Schema } from "mongoose";
+import config from "../../config";
 import {
   IUserModel,
   TAddress,
@@ -7,48 +9,57 @@ import {
   TUser,
 } from "./user.interface";
 
-const fullNameSchema = new Schema<TFullName>({
-  firstName: {
-    type: String,
-    required: [true, "First name is required"],
-    maxlength: [20, "First name cannot be more than 20 characters"],
+const fullNameSchema = new Schema<TFullName>(
+  {
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      maxlength: [20, "First name cannot be more than 20 characters"],
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      maxlength: [20, "Last name cannot be more than 20 characters"],
+    },
   },
-  lastName: {
-    type: String,
-    required: [true, "Last name is required"],
-    maxlength: [20, "Last name cannot be more than 20 characters"],
-  },
-});
+  { _id: false }
+);
 
-const orderSchema = new Schema<TOrder>({
-  productName: {
-    type: String,
-    required: [true, "Product name is required"],
+const orderSchema = new Schema<TOrder>(
+  {
+    productName: {
+      type: String,
+      required: [true, "Product name is required"],
+    },
+    price: {
+      type: Number,
+      required: [true, "Product Price is required"],
+    },
+    quantity: {
+      type: Number,
+      required: [true, "Product Quantity is required"],
+    },
   },
-  price: {
-    type: Number,
-    required: [true, "Product Price is required"],
-  },
-  quantity: {
-    type: Number,
-    required: [true, "Product Quantity is required"],
-  },
-});
+  { _id: false }
+);
 
-const addressSchema = new Schema<TAddress>({
-  street: {
-    type: String,
-    required: [true, "Street is required"],
+const addressSchema = new Schema<TAddress>(
+  {
+    street: {
+      type: String,
+      required: [true, "Street is required"],
+    },
+    city: {
+      type: String,
+      required: [true, "City is required"],
+    },
+    country: {
+      type: String,
+      required: [true, "Country is required"],
+    },
   },
-  city: {
-    type: String,
-    required: [true, "City is required"],
-  },
-  country: {
-    type: String,
-    required: [true, "Country is required"],
-  },
-});
+  { _id: false }
+);
 
 const userSchema = new Schema<TUser, IUserModel>({
   userId: {
@@ -88,9 +99,19 @@ const userSchema = new Schema<TUser, IUserModel>({
   orders: [orderSchema],
 });
 
-userSchema.statics.isUserExist = async function (userId: string) {
+userSchema.pre("save", async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this;
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds)
+  );
+  next();
+});
+
+userSchema.statics.isUserExists = async function (userId: string) {
   const user = await User.findOne({ userId });
-  return user;
+  return user?.toObject();
 };
 
 const User = mongoose.model<TUser, IUserModel>("User", userSchema);
