@@ -66,9 +66,6 @@ const deleteUserFromDB = async (userId: number) => {
     return null;
   }
 
-  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-  const { orders, password, ...deletedUser } = result.toObject();
-
   return result;
 };
 
@@ -82,7 +79,7 @@ const addNewOrderToDB = async (userId: number, order: TOrder) => {
   const result = await User.findOneAndUpdate(
     { userId: userId },
     {
-      $set: { orders: { $push: order } },
+      $push: { orders: order },
     }
   );
 
@@ -93,6 +90,22 @@ const addNewOrderToDB = async (userId: number, order: TOrder) => {
   return order;
 };
 
+const getUserOrdersFromDB = async (userId: number) => {
+  const exists = await User.isUserExists(userId);
+
+  if (!exists) {
+    return null;
+  }
+
+  const result = await User.findOne({ userId: userId }, { orders: 1 });
+
+  if (!result) {
+    return null;
+  }
+
+  return result;
+};
+
 export const userServices = {
   createUserIntoDB,
   getAllUsersFromDB,
@@ -100,4 +113,5 @@ export const userServices = {
   updateUserIntoDB,
   deleteUserFromDB,
   addNewOrderToDB,
+  getUserOrdersFromDB,
 };

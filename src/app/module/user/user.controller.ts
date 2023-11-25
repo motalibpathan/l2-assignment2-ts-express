@@ -168,7 +168,36 @@ const addNewOrder = async (req: Request, res: Response) => {
   }
 };
 
-const getUserOrders = async (req: Request, res: Response) => {};
+const getUserOrders = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  try {
+    const orders = await userServices.getUserOrdersFromDB(Number(userId));
+
+    if (!orders) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: {
+          code: 404,
+          description: "User not found!",
+        },
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "Orders fetched successfully!",
+        data: orders,
+      });
+    }
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Something went wrong",
+      error: err,
+    });
+  }
+};
 
 export const userControllers = {
   createUser,
